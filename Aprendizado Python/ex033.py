@@ -10,3 +10,5 @@ n3 = input('Digite um número válido: ')
 while n3.strip().isnumeric() == False:
     n3 = input('Digite um número válido: ')
 n3 = int(n3)
+
+#incompleto!
