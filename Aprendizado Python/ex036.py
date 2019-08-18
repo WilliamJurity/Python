@@ -10,11 +10,11 @@ sl = float(sl)
 
 parcelas = input('Digite o valor das parcelas: ')
 while parcelas.strip().isnumeric() == False:
-    parcelas = input('Digite um valor válido: ')
+    parcelas = input("Digite um valor válido: ")
 parcelas = float(parcelas)
 
 prestacao = vlcasa / parcelas
-print('O valor de cada prestação da sua casa é {:.2f}'.format(prestacao))
+print(f"O valor de cada prestação da sua casa é {prestacao:.2f}")
 
 x = sl * 30 / 100
 
