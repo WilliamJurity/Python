@@ -1,0 +1,165 @@
+##################################
+# .COMPOS - Tecnologia
+# Desenvolvido por Kessia Barboza
+# RouterOS 6.4 - 25/09/2013 - 12:08:57
+# RELEASE-NOTES:
+#   - 24/04/2015: Atualizacao para RouterOS 6.28 (Katuchi)
+#   - 27/04/2015: Alteracao interface LAN para ultima porta disponivel (Katuchi)
+#   - 07/07/2015: Modificado a senha do usuario admin (Joao Ferreira)
+#   - 09/09/2015: Modificado as regras de firewal, adicionado o usuário suporte-n1 e habilitado o watchdog (Joao Ferreira)
+#                 Homologacao RouterOS 6.31
+#   - 11/05/2017: Alterado permissões do scheduler pois após verção RouterOS 6.35.2
+#                 os scripts somente são executados se possuerem as seguintes permissões
+#                 ftp,read,policy,password,sensitive,reboot,write,test,sniff,romon
+#    - 03/07/2017: Ajustado a configuração do SNMP/TRAP - Zabbix. (Herbano Andrusyszyn)
+#    - 14/07/2017: Adicionado envio de logs para o servidor SYSLOG - Graylog. (Herbano Andrusyszyn)
+##################################
+
+##################################
+# INTERFACES
+##################################
+/interface ethernet
+set 0 comment=WAN
+set 4 comment=LAN
+/ip neighbor discovery
+set ether1 comment=WAN
+set ether5 comment=LAN
+##################################
+# QUEUE
+###################################
+add kind=pcq name=pcq-down pcq-classifier=dst-address
+add kind=pcq name=pcq-up pcq-classifier=src-address
+##################################
+# SNMP
+##################################
+/snmp community
+set [ find default=yes ] address=187.18.5.31/32,172.31.15.31/32,187.18.5.140/32,172.31.15.140/32 name=composnet
+/snmp
+set contact=root@compos.com.br enabled=yes
+set trap-community=composnet
+set trap-target=187.18.5.140,172.31.15.140
+set location=[/system identity get name]
+##################################
+# LOGGING
+##################################
+/system logging action
+set 0 memory-lines=1000
+set 3 remote=172.31.15.45 remote-port=40513
+/system logging
+set 0 action=disk
+set 1 action=disk
+add action=remote topics=info
+add action=remote topics=warning
+add action=remote topics=error
+add action=remote topics=critical
+##################################
+# USERS
+##################################
+/user group
+add name=controle policy="telnet,ssh,ftp,read,!write,test,sensitive,!local,\
+    !reboot,!policy,!winbox,!password,!web,!sniff,!api"
+/user
+add address=187.18.2.70 comment="" disabled=no group=controle name=bkpconf \
+    password=wah0Coj5C0nF
+/user
+set admin address=0.0.0.0/0 comment="" disabled=no group=full name=admin \
+    password=c0mp0s@dm
+/user
+add address=0.0.0.0/0 comment="user support level 1" disabled=no group=read name=suporte-n1 \
+    password=c0mp0s@uP1
+##################################
+# FIREWALL
+##################################
+/ip dns
+set servers=187.18.5.9,187.18.5.10
+/ip firewall address-list
+add address=172.31.10.8 list=compos
+add address=187.18.2.70 list=compos
+add address=187.18.2.72 list=compos
+add address=187.18.5.140 list=compos
+add address=172.31.15.0/24 list=compos
+add address=172.16.5.0/24 disabled=yes list=compos
+/ip firewall filter
+add chain=input comment="Libera Acesso COMPOS" src-address-list=compos
+add chain=input comment="Libera PING" icmp-options=0 protocol=icmp
+add chain=input icmp-options=8 protocol=icmp
+add chain=input comment="Libera TRACEROUTE" icmp-options=11 protocol=icmp
+add chain=input icmp-options=3:3 protocol=icmp
+add chain=input comment="Libera PMTUD" icmp-options=3:4 protocol=icmp
+add chain=input comment="Libera RELATED,ESTABLISHED" connection-state=related
+add chain=input connection-state=established
+add chain=input comment="Libera DNS Rede Interna" disabled=yes dst-port=53 \
+    in-interface=ether5 protocol=udp
+add chain=input comment="Libera DHCP Server Rede Interna" disabled=yes dst-port=67 in-interface=ether5 protocol=udp
+add action=drop chain=input comment="Bloqueia RESTO" disabled=yes
+/ip firewall nat
+add action=masquerade chain=srcnat comment="MASCARAMENTO COMPOS" \
+    out-interface=ether1
+##################################
+# SERVIÇOS
+##################################
+/ip service
+set telnet address=0.0.0.0/0 disabled=yes
+set ftp address=0.0.0.0/0 disabled=yes
+set www address=0.0.0.0/0 disabled=yes
+set ssh address=187.18.2.70/32,172.31.15.30/32,187.18.15.255/32 port=22
+set www-ssl address=0.0.0.0/0 disabled=yes
+set api address=0.0.0.0/0 disabled=yes
+set winbox address=187.18.2.70/32,187.18.2.72/32
+set api-ssl disabled=yes
+##################################
+# NTP
+##################################
+/system clock set time-zone-name=America/Bahia
+/system ntp client set enabled=yes primary-ntp=172.31.15.32 secondary-ntp=172.31.15.31
+##################################
+# CRON
+##################################
+/system scheduler
+add interval=1d name=backup-12h on-event=backup policy=\
+    ftp,read,policy,test\
+    start-date=jan/01/1970 start-time=12:00:00
+add interval=1m name=pingcompos on-event=pingcompos policy=\
+    ftp,read,policy,test\
+    start-date=jan/01/1970 start-time=startup
+##################################
+# SCRIPTS [pingcompos, backup]
+##################################
+/system script
+add name=backup policy=\
+    ftp,read,policy,test source="\
+    :local hostname [/system identity get name] \r\
+    \n/system backup save name=\$hostname\r\
+    \n/export file=\$hostname\r\
+    \n"
+add name=pingcompos policy=ftp,read,policy,test source=":local avgRtt\r\
+    \n:local pin\r\
+    \n:local pout\r\
+    \n:local dcompos 187.18.2.70\r\
+    \n/tool flood-ping \$dcompos count=10 do={\r\
+    \n  :if (\$sent = 10) do={\r\
+    \n    :set avgRtt \$\"avg-rtt\"\r\
+    \n    :set pout \$sent\r\
+    \n    :set pin \$received\r\
+    \n  }\r\
+    \n}\r\
+    \n:local ploss (100 - ((\$pin * 100) / \$pout))\r\
+    \n:local logmsg (\"Ping Avg: \$dcompos - \".[:tostr \$avgRtt].\"ms - pkt loss: \".[:tostr \$pl\
+    oss].\"%\")\r\
+    \n:if (\$ploss = 0) do={\r\
+    \n  :log warning \$logmsg\r\
+    \n} else={\r\
+    \n    :log info \$logmsg\r\
+    \n}"
+##################################
+# GRÁFICOS
+##################################
+/tool graphing interface add
+/tool graphing queue add
+/tool graphing resource add
+
+#################################
+# WATCHDOG
+#################################
+/system watchdog
+set watch-address=127.0.0.1
