@@ -38,11 +38,15 @@ while True:
 maioridade = []
 homens = []
 mulheres = []
-
-for pessoa in lista:
-    if i["idade"] >= 18:
-        maioridade.append(pessoa)
-    elif i["sexo"].lower() == "m":
-        homens.append(pessoa)
-    elif i["sexo"].lower() == "f":
-        mulheres.append(pessoa)
+# Separa cada pessoa em uma lista diferente
+for registro in lista:
+    print(lista[registro])
+    '''''
+    if registro["idade"] >= 18:
+        maioridade.append(registro)
+    elif registro["sexo"].lower() == "m":
+        homens.append(registro)
+    elif registro["sexo"].lower() == "f":
+        if registro["Idade"] <=20:
+            mulheres.append(registro)
+'''''
