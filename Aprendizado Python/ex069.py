@@ -40,13 +40,23 @@ homens = []
 mulheres = []
 # Separa cada pessoa em uma lista diferente
 for registro in lista:
-    print(lista[registro])
-    '''''
-    if registro["idade"] >= 18:
+    if int(lista[registro]["idade"]) >= 18:
         maioridade.append(registro)
-    elif registro["sexo"].lower() == "m":
+    if lista[registro]["sexo"].lower() == "m":
         homens.append(registro)
-    elif registro["sexo"].lower() == "f":
-        if registro["Idade"] <=20:
+    if lista[registro]["sexo"].lower() == "f":
+        if int(lista[registro]["idade"]) <= 20:
             mulheres.append(registro)
-'''''
+
+# Mostra o Resultado
+print("Pessoas maiores de 18 anos: ")
+for item in maioridade:
+    print(item)
+
+print("Homens Cadastrados: ")
+for item in homens:
+    print(item)
+
+print("Mulheres com menos de 20 anos: ")
+for item in mulheres:
+    print(item)
