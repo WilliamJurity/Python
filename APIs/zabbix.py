@@ -1,6 +1,10 @@
 import json
 import requests
 from zabbix_api import ZabbixAPI
+from .phpipam import phpipamAPI
+teste = phpipamAPI()
+teste.api_url()
+
 
 api_server = 'https://compos-zabbix.compos.com.br'
 api_user = 'wjurity'

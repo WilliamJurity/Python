@@ -1,41 +1,59 @@
 import json
 import requests
 
-api_url_base = 'compos-ip.compos.com.br/api/compos'
+class phpipamAPI(object):
+    headers = {'Content-Type': 'application/json'}
+    def __init__(self, api_user, api_password, your_app, server):
+        self.api_url_base = f'{server}/api/{your_app}'
+        self.api_url = f'https://{api_user}:{api_password}@{self.api_url_base}'
+
+    @property
+    def login(self):
+        try:
+            response = requests.post(f'{self.api_url}/user/', headers=phpipamAPI.headers)
+            if response.status_code == 200:
+                self.result = json.loads(response.content.decode('utf-8'))
+                self.token = self.result['data']['token']
+                self.tokenExpire = self.result['data']['expires']
+                self.authCod = self.result['code']
+                phpipamAPI.headers.update({'phpipam-token': self.token})
+                return self.result["success"]
+            else:
+                erro = json.loads(response.content.decode('utf-8'))
+                return erro['message']
+        except:
+            raise print('Ocorreu um erro ao se conectar com o servidor.')
+
+    def get_devices(self):
+        try:
+            response = requests.get(f'https://{self.api_url_base}/devices/', headers=phpipamAPI.headers)
+            if response.status_code == 200:
+                self.result = json.loads(response.content.decode('utf-8'))
+                return self.result['data']
+            else:
+                erro = json.loads(response.content.decode('utf-8'))
+                return erro['message']
+        except:
+            raise print('Ocorreu um erro ao se conectar com o servidor.')
+
+    def logout(self):
+        try:
+            response = requests.delete(f'{self.api_url}/user/', headers=phpipamAPI.headers)
+            if response.status_code == 200:
+                result = json.loads(response.content.decode('utf-8'))
+                return result
+            else:
+                erro = json.loads(response.content.decode('utf-8'))
+                return erro['message']
+        except:
+            print('Ocorreu um erro ao se conectar com o servidor.')
+
 api_user = 'api'
 api_password = 'SXqoVoBPbv'
-headers = {'Content-Type': 'application/json'}
+server = 'compos-ip.compos.com.br'
+app = 'compos'
+ipam = phpipamAPI(api_user,api_password,app,server)
 
-def get_auth():
-    api_url = f'https://{api_user}:{api_password}@{api_url_base}/user/'
-    response = requests.post(api_url, headers=headers)
-    if response.status_code == 200:
-        return json.loads(response.content.decode('utf-8'))
-    else:
-        None
-
-auth = get_auth()
-token = auth['data']['token']
-headers.update({'phpipam-token': token})
-
-def get_devices():
-    api_url = f'https://{api_user}:{api_password}@{api_url_base}/devices/'
-    response = requests.get(api_url, headers=headers)
-    return json.loads(response.content.decode('utf-8'))
-
-def get_subnets():
-    api_url = f'https://{api_user}:{api_password}@{api_url_base}/subnets/custom_fields/'
-    response = requests.get(api_url, headers=headers)
-    return json.loads(response.content.decode('utf-8'))
-
-def revokeToken():
-    api_url = f'https://{api_user}:{api_password}@{api_url_base}/user/'
-    response = requests.delete(api_url, headers=headers)
-    return json.loads(response.content.decode('utf-8'))
-
-devices = get_devices()
-
-print(devices["data"])
-
-
-print(revokeToken())
+ipam.login
+print(ipam.get_devices())
+print(ipam.logout())
