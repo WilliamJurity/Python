@@ -2,6 +2,7 @@ import json
 import requests
 
 class phpipamAPI(object):
+    headers = dict()
     headers = {'Content-Type': 'application/json'}
     def __init__(self, api_user, api_password, your_app, server):
         self.api_url_base = f'{server}/api/{your_app}'
@@ -29,7 +30,7 @@ class phpipamAPI(object):
             response = requests.get(f'https://{self.api_url_base}/devices/', headers=phpipamAPI.headers)
             if response.status_code == 200:
                 self.result = json.loads(response.content.decode('utf-8'))
-                return self.result['data']
+                return self.result['data'][0]['hostname']
             else:
                 erro = json.loads(response.content.decode('utf-8'))
                 return erro['message']
@@ -54,6 +55,10 @@ server = 'compos-ip.compos.com.br'
 app = 'compos'
 ipam = phpipamAPI(api_user,api_password,app,server)
 
+teste = list()
+teste = dict()
+
 ipam.login
 print(ipam.get_devices())
+print(phpipamAPI.headers)
 print(ipam.logout())
