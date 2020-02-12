@@ -1,52 +1,40 @@
-dns = {
-    'resolver1': '187.18.5.9',
-    'resolver2': '187.18.5.10'
-}
-ntp = {
-    'server1': 'compos-ntp1.compos.net.br',
-    'server2': 'compos.ntp2.compos.net.br'
-}
-snmp = {
-    'Community': 'composnet',
-    'Contact': 'root@compos.net.br',
-    'Location': None
-}
-webserver = {
-    'serverPort' : 4080,
-    'secureServerPort': 40443
-}
-class radioUB(object):
-    def __init__(self, modelo, mode, sysname):
-        self.modelo = modelo
-        self.mode = mode
-        self.sysname = sysname
-    @property
-    def login(self):
-        pass
-    def restart(self):
-        pass
-    def logout(self, teste):
-        pass
+from random import choice
+# from random import randrange
 
-file = open('./padrao.conf.bkp', 'r')
-linhas = []
+class NewConfigUB(object):
+    def __init__(self, template):
+        arquivo = open(template, 'r')
+        self.espelho = []
+        for linha in arquivo:
+            linha = linha.strip()
+            self.espelho.append(linha)
+        arquivo.close()
 
-for linha in file:
-    linha = linha.strip()
-    linhas.append(linha)
+    def replaceConfig(self, atributo, valor):
+        for l in range(0, len(self.espelho)):
+            if atributo in self.espelho[l]:
+                explode = self.espelho[l].split("=")
+                explode[1] = valor
+                self.espelho[l] = f'{explode[0]}={explode[1]}'
 
-def grep(string, lista, valuer):
-    #result = list()
-    for item in lista:
-        if string in item:
-            result = item.split("=")
-            result[1] = valuer
-    return result
+    def get_newConfig(self):
+        newFile = open('./new_arquivo.conf', 'w')
+        for parametro in self.espelho:
+            newFile.write(f'{parametro}\n')
+        newFile.close()
 
-print(grep("radio.1.rts",linhas, "on"))
+    def new_key(self, lenth=12):
+        base = "0123456789abcdefghijlmnopqrstuvxzkwYABCDEFGHIJLMNOPQRSTUVXZKWY!#$%*()-_=+"
+        passwd = ''
+        for char in range(0, lenth):
+            passwd += choice(base)
+        return passwd # .join([chr(randrange(48, 122)) for x in range(0, lenth)])
 
-file.close()
-
-    # instanciando o objeto
-    #newConf = radioUB()
-    #newConf.modelo
+newConf = NewConfigUB("./padrao.conf.bkp")
+print(newConf.espelho)
+newConf.replaceConfig("vlan.status", "enable")
+newConf.replaceConfig("gui.language", "pt-br")
+newConf.replaceConfig("aaa.1.devname", "ath2")
+newConf.replaceConfig("resolv.host.1.name", "NanoBridge")
+print(newConf.espelho)
+print(newConf.new_key(lenth=10))
