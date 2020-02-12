@@ -1,0 +1,17 @@
+aaa.1.devname=ath0
+aaa.1.driver=madwifi
+aaa.1.wpa.1.pairwise=CCMP
+aaa.1.wpa.mode=2
+dhcp6c.status=disabled
+ppp.status=disabled
+vlan.status=disabled
+update.check.status=enabled
+resolv.nameserver.status=enabled
+resolv.nameserver.2.status=disabled
+resolv.nameserver.2.ip=
+resolv.nameserver.1.status=disabled
+resolv.nameserver.1.ip=
+resolv.host.1.name=Rocket M5
+resolv.host.1.status=enabled
+resolv.status=disabled
+gui.language=en_US
