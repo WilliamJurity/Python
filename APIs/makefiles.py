@@ -38,3 +38,30 @@ newConf.replaceConfig("aaa.1.devname", "ath2")
 newConf.replaceConfig("resolv.host.1.name", "NanoBridge")
 print(newConf.espelho)
 print(newConf.new_key(lenth=10))
+
+configs = {
+    'wireless': [{
+        'ssid': 'CMSSIDPADRAO',
+        'channel': '40',
+        'frequency': 'auto',
+        'secure': [dict(auth='wpa2', cripto='eap')]
+    }],
+
+    'network': [{
+
+    }],
+    'services': [{
+
+    }],
+    'sistema': [{
+
+    }]
+}
+
+config = {
+    'init' : 'configuração padrão',
+    'replace': 'substitui parâmetros',
+    'get_config': 'obtem a nova configuração',
+    'get_pass': 'obtem uma sequencia de caracteres (senhas)'
+
+}
