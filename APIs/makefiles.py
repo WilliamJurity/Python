@@ -3,12 +3,11 @@ from random import choice
 
 class NewConfigUB(object):
     def __init__(self, template):
-        arquivo = open(template, 'r')
-        self.espelho = []
-        for linha in arquivo:
-            linha = linha.strip()
-            self.espelho.append(linha)
-        arquivo.close()
+        with open(template, 'r') as arquivo:
+            self.espelho = []
+            for linha in arquivo:
+                linha = linha.strip()
+                self.espelho.append(linha)
 
     def replaceConfig(self, atributo, valor):
         for l in range(0, len(self.espelho)):
@@ -18,10 +17,9 @@ class NewConfigUB(object):
                 self.espelho[l] = f'{explode[0]}={explode[1]}'
 
     def get_newConfig(self):
-        newFile = open('./new_arquivo.conf', 'w')
-        for parametro in self.espelho:
-            newFile.write(f'{parametro}\n')
-        newFile.close()
+        with open('./new_arquivo.conf', 'w') as newFile:
+            for parametro in self.espelho:
+                newFile.write(f'{parametro}\n')
 
     def new_key(self, lenth=12):
         base = "0123456789abcdefghijlmnopqrstuvxzkwYABCDEFGHIJLMNOPQRSTUVXZKWY!#$%*()-_=+"
